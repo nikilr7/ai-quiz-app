@@ -16,8 +16,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
+@api_view(['GET'])
+def api_root(request):
+    return Response({
+        "message": "AI Quiz API",
+        "endpoints": {
+            "admin": "/admin/",
+            "api": "/api/",
+            "quizzes": "/api/quizzes/",
+            "generate_quiz": "/api/generate-quiz/",
+            "submit_quiz": "/api/submit-quiz/"
+        }
+    })
 
 urlpatterns = [
+    path('', api_root, name='api-root'),
     path('admin/', admin.site.urls),
     path('api/', include('quiz.urls')),
 ]
