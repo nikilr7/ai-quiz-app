@@ -27,7 +27,8 @@ def api_root(request):
             "admin": "/admin/",
             "api": "/api/",
             "quizzes": "/api/quizzes/",
-            "generate_quiz": "/api/generate-quiz/"
+            "generate_quiz": "/api/generate-quiz/",
+            "submit_quiz": "/api/submit-quiz/"
         }
     })
 

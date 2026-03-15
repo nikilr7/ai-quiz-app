@@ -118,36 +118,14 @@ def submit_quiz(request):
         attempt.save()
 
         return Response({
-            "quiz_id": quiz_id,
+            "message": "Quiz submitted successfully",
+            "attempt_id": attempt.id,
             "score": score,
-            "total_questions": quiz.num_questions
-        })
+            "total": quiz.num_questions
+        }, status=201)
 
     except Exception as e:
         return Response(
             {"error": str(e)},
             status=500
         )
-    
-from .models import Attempt
-
-
-@api_view(['GET'])
-def quiz_history(request):
-
-    user = User.objects.get(username="default_user")
-
-    attempts = Attempt.objects.filter(user=user)
-
-    history = []
-
-    for a in attempts:
-        history.append({
-            "quiz_id": a.quiz.id,
-            "topic": a.quiz.topic,
-            "score": a.score,
-            "total_questions": a.quiz.num_questions,
-            "date": a.created_at
-        })
-
-    return Response(history)

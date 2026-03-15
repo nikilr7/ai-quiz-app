@@ -5,7 +5,8 @@ import json
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
 
 # Get available models and find one that supports generateContent
 def get_available_model():
@@ -26,25 +27,24 @@ model = genai.GenerativeModel(model_name)
 
 def generate_quiz(topic, num_questions, difficulty):
 
-    prompt = f"""
-    Generate {num_questions} multiple choice questions about {topic}.
-    Difficulty: {difficulty}.
-
-    Return ONLY valid JSON like this format:
-
-    [
-      {{
+    json_format = '''[
+      {
         "question": "Question text",
         "option_a": "Option A text",
         "option_b": "Option B text",
         "option_c": "Option C text",
         "option_d": "Option D text",
         "correct_answer": "A"
-      }}
-    ]
-    
-    Do not include any markdown or code blocks. Return only the JSON array.
-    """
+      }
+    ]'''
+
+    prompt = f"""Generate {num_questions} multiple choice questions about {topic}.
+Difficulty level: {difficulty}.
+
+Return ONLY valid JSON in this exact format:
+{json_format}
+
+Do not include any markdown, code blocks, or explanations. Return only the JSON array."""
 
     try:
         response = model.generate_content(prompt)
