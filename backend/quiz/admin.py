@@ -5,6 +5,3 @@ admin.site.register(Quiz)
 admin.site.register(Question)
 admin.site.register(Attempt)
 admin.site.register(Answer)
-from django.contrib import admin
-
-# Register your models here.
