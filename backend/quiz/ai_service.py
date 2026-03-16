@@ -3,10 +3,45 @@ import os
 from dotenv import load_dotenv
 import json
 
+# Load environment variables from .env file
 load_dotenv()
 
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
+# Get API key from environment
+def get_api_key():
+    """Get API key from environment, with fallback to .env file"""
+    # Try to get from environment first
+    api_key = os.getenv("GEMINI_API_KEY")
+    
+    # If not found, try to load from .env file
+    if not api_key:
+        load_dotenv(override=True)
+        api_key = os.getenv("GEMINI_API_KEY")
+    
+    return api_key
+
+def configure_genai():
+    """Configure Gemini API with proper error handling"""
+    api_key = get_api_key()
+    
+    if not api_key or api_key == "your_api_key_here":
+        raise ValueError(
+            "GEMINI_API_KEY not set. Please:\n"
+            "1. Get your API key from: https://aistudio.google.com/\n"
+            "2. Create backend/.env file with: GEMINI_API_KEY=your_key\n"
+            "3. Restart the backend server"
+        )
+    
+    try:
+        genai.configure(api_key=api_key)
+        return True
+    except Exception as e:
+        raise ValueError(f"Error configuring Gemini API: {e}")
+
+# Configure on import
+try:
+    configure_genai()
+except ValueError as e:
+    print(f"WARNING: {e}")
 
 # Get available models and find one that supports generateContent
 def get_available_model():
