@@ -28,6 +28,22 @@ def generate_quiz_api(request):
                 status=400
             )
 
+        # Validate num_questions is an integer
+        try:
+            num_questions = int(num_questions)
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "num_questions must be an integer"},
+                status=400
+            )
+
+        # Validate num_questions range
+        if num_questions < 5 or num_questions > 20:
+            return Response(
+                {"error": "num_questions must be between 5 and 20"},
+                status=400
+            )
+
         # Get or create a default user
         user, created = User.objects.get_or_create(
             username='default_user',
@@ -45,32 +61,45 @@ def generate_quiz_api(request):
 
         # Check if response is an error dict
         if isinstance(ai_questions, dict) and "error" in ai_questions:
+            # Delete the quiz if AI generation failed
+            quiz.delete()
             return Response(ai_questions, status=500)
         
         if not ai_questions or not isinstance(ai_questions, list):
+            # Delete the quiz if no questions were generated
+            quiz.delete()
             return Response(
                 {"error": "Failed to generate quiz questions"},
                 status=500
             )
 
+        # Create questions
         for q in ai_questions:
-            Question.objects.create(
-                quiz=quiz,
-                question_text=q["question"],
-                option_a=q["option_a"],
-                option_b=q["option_b"],
-                option_c=q["option_c"],
-                option_d=q["option_d"],
-                correct_answer=q["correct_answer"]
-            )
+            try:
+                Question.objects.create(
+                    quiz=quiz,
+                    question_text=q.get("question", ""),
+                    option_a=q.get("option_a", ""),
+                    option_b=q.get("option_b", ""),
+                    option_c=q.get("option_c", ""),
+                    option_d=q.get("option_d", ""),
+                    correct_answer=q.get("correct_answer", "A")
+                )
+            except Exception as q_error:
+                print(f"Error creating question: {q_error}")
+                continue
 
-        return Response({
-            "message": "Quiz generated successfully",
-            "quiz_id": quiz.id
-        }, status=201)
+        # Fetch the complete quiz with questions
+        quiz_with_questions = Quiz.objects.prefetch_related('questions').get(id=quiz.id)
+        serializer = QuizSerializer(quiz_with_questions)
+        
+        return Response(serializer.data, status=201)
     except Exception as e:
+        import traceback
+        print(f"Error in generate_quiz_api: {str(e)}")
+        print(traceback.format_exc())
         return Response(
-            {"error": str(e)},
+            {"error": f"Server error: {str(e)}"},
             status=500
         )
 
